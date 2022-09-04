@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.toOffset
 import com.example.moneh.ui.utils.andThen
 import com.example.moneh.ui.utils.apartFrom
 import com.example.moneh.ui.utils.hsv
+import com.example.moneh.ui.utils.logError
 import com.example.moneh.ui.utils.toNorthClockwiseAngle
 import com.example.moneh.ui.utils.with
 import com.example.moneh.ui.utils.withBottomOrigin
@@ -33,10 +35,10 @@ fun <ID> Chart(
     colorOverrides: Map<ID, Color> = mapOf(),
     onSelection: (ID) -> Unit = {},
 ) {
-    var begin by remember { mutableStateOf(false) }
-    val maxSweep by animateFloatAsState(
-        targetValue = if (begin) 360f else 0f,
-        animationSpec = tween(1000)
+    var targetSweep by remember { mutableStateOf(0f) }
+    val currentSweepRange by animateFloatAsState(
+        targetValue = targetSweep,
+        animationSpec = tween(2000)
     )
 
     val total = dataPoints.sumOf { it.value }
@@ -46,14 +48,16 @@ fun <ID> Chart(
         list + ((last + it.value * 360.0 / total) to it.id)
     }
 
+    LaunchedEffect(Unit) {
+        targetSweep = 360f
+    }
 
     if (dataPoints.isEmpty()) {
         Canvas(modifier = modifier) {
-            begin = true
             drawSlice(
                 color = Color.White.with(value = {0.95f}),
                 startAngle = -90f,
-                sweepAngle = maxSweep,
+                sweepAngle = currentSweepRange,
             )
         }
         return
@@ -65,7 +69,7 @@ fun <ID> Chart(
                 val center = this.size.center.toOffset()
                 detectTapGestures(
                     onTap = { tap ->
-                        if (maxSweep < 360f) return@detectTapGestures
+                        if (currentSweepRange < 360f) return@detectTapGestures
 
                         val touchAngle =
                             tap.withBottomOrigin(this.size.height.toFloat())
@@ -76,6 +80,7 @@ fun <ID> Chart(
                             bound.first
                         }
                             .let { abs(it) - 1 }
+                            .also(logError("Found"))
                             .let(angleBounds::get andThen {it.second})
                             .run(onSelection)
                     }
@@ -84,9 +89,8 @@ fun <ID> Chart(
     ) {
         var start = -90f
         var hue = 0f
-        begin = true
         dataPoints.forEach {
-            val sweep = ((maxSweep * it.value / total)).toFloat()
+            val sweep = ((currentSweepRange * it.value / total)).toFloat()
             val hueSweep = ((360.0 / dataPoints.size)).toFloat()
             drawSlice(
                 color = colorOverrides[it.id] ?: hsv(hue = hue, saturation = 0.5f, value = 0.75f),

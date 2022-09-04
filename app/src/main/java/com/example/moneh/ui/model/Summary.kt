@@ -12,7 +12,7 @@ data class Summary(
                 liabilities = Liabilities(listOf()),
                 revenues = Revenues(listOf()),
                 costs = Costs(listOf()),
-                assets = Assets((0 until 12).map { 5+it.toDouble() }.map {
+                assets = Assets((0 until 10).map { 5+it.toDouble() }.map {
                     Asset(id = "Id_$it", amount = it, name = "Name_$it")
                 }),
             )
