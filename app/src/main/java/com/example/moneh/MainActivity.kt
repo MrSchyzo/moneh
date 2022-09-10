@@ -1,7 +1,6 @@
 package com.example.moneh
 
 import android.content.res.Configuration
-import android.graphics.fonts.FontStyle
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -37,13 +36,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import com.example.moneh.ui.composables.Chart
 import com.example.moneh.ui.composables.DataPoint
 import com.example.moneh.ui.model.Summary
 import com.example.moneh.ui.theme.MonehTheme
 import com.example.moneh.ui.utils.hsv
-import com.example.moneh.ui.utils.logError
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +57,7 @@ class MainActivity : ComponentActivity() {
 fun Summary(summary: Summary = Summary.sampleAssets()) {
     val dataPoints = summary.assets.assets.map { DataPoint(id = it.id, value = it.amount, label = it.name) }
     val colorOverrides = dataPoints.mapIndexed { idx, point ->
-        point.id to hsv(hue = (340*idx % 360).toFloat(), value = 0.75f, saturation = 0.5f)
+        point.id to hsv(hue = (340 * idx % 360).toFloat(), value = 0.75f, saturation = 0.5f)
     }.toMap()
     val context = LocalContext.current
     val total = dataPoints.sumOf(DataPoint<String>::value).toFloat()
@@ -76,16 +74,28 @@ fun Summary(summary: Summary = Summary.sampleAssets()) {
         show = total
     }
 
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier
+                .fillMaxWidth(1f)
+        ) {
+            Text(text = "Breadcrumbs > in > here > !", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Divider(color = Color.LightGray, thickness = 1.dp)
+
         Chart(
             dataPoints = dataPoints,
             colorOverrides = colorOverrides,
             modifier = Modifier
-                .fillMaxWidth(1f)
-                .padding(4.dp)
+                .fillMaxWidth(0.8f)
+                .padding(24.dp)
                 .aspectRatio(1f)
         ) {
-            Toast.makeText(context, "Selected ID $it", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Selected ID $it", Toast.LENGTH_SHORT).show()
         }
 
         Divider(color = Color.LightGray, thickness = 1.dp)
@@ -95,45 +105,93 @@ fun Summary(summary: Summary = Summary.sampleAssets()) {
             modifier = Modifier
                 .fillMaxWidth(1f)
         ) {
-
-            Text(text = "Total: € ${"%.2f".format(amount)}", fontSize = 6.em, fontWeight = FontWeight.Bold)
+            Text(text = "Total: € ${"%.2f".format(amount)}", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         }
 
         Divider(color = Color.LightGray, thickness = 1.dp)
 
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             dataPoints.forEach {
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(1f)) {
-                    Column(modifier = Modifier.fillMaxWidth(0.1f), verticalArrangement = Arrangement.SpaceAround) {
-                        Box(modifier = Modifier
-                            .clip(RoundedCornerShape(1.dp))
-                            .background(colorOverrides[it.id] ?: Color.Gray)
-                            .size(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    modifier = Modifier
+                        .fillMaxWidth(1f)
+                        .padding(10.dp)
+                        .clickable {
+                            Toast.makeText(context, "Selected ID ${it.id}", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(0.1f),
+                        verticalArrangement = Arrangement.SpaceAround,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(1.dp))
+                                .background(colorOverrides[it.id] ?: Color.Gray)
+                                .size(18.dp)
+                        )
                     }
 
-                    Column(modifier = Modifier.fillMaxWidth(0.9f)) {
-                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(1f)) {
-                            Text(it.label, fontSize = 4.em)
-                            Text("€ %.2f".format(it.value), fontSize = 4.em)
+                    Column(
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth(1f)
+                        ) {
+                            Text(it.label, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Amount(it.value.toFloat())
                         }
                     }
                 }
+                Divider(color = Color.LightGray, thickness = 1.dp)
             }
         }
     }
 }
 
 @Composable
+fun AnimatedAmount(
+    amount: Float
+) {
+    var show by remember {
+        mutableStateOf(0f)
+    }
+    val value by animateFloatAsState(
+        targetValue = show,
+        animationSpec = tween(2000)
+    )
+
+    LaunchedEffect(Unit) {
+        show = amount
+    }
+
+    Amount(amount)
+}
+
+@Composable
+fun Amount(
+    value: Float
+) {
+    Text("€ %.2f".format(value), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+}
+
+@Composable
 @Preview(
-    name = "Light",
+    name = "Light"
 )
 @Preview(
     name = "Dark",
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 fun DefaultPreview() {
     MonehTheme {
         Summary(summary = Summary.sampleAssets())
-        //Conversation(SampleData.conversationSample)
+        // Conversation(SampleData.conversationSample)
     }
 }
