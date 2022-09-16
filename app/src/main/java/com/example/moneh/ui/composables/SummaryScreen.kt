@@ -112,11 +112,11 @@ fun SummaryScreen(summary: Summary = Summary.sampleAssets()) {
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier
                         .fillMaxWidth(1f)
-                        .padding(10.dp)
                         .clickable {
                             Toast.makeText(context, "Selected ID ${it.id}", Toast.LENGTH_SHORT)
                                 .show()
                         }
+                        .padding(10.dp)
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(0.1f),
