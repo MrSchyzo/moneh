@@ -33,7 +33,7 @@ fun <ID> Chart(
     dataPoints: List<DataPoint<ID>>,
     modifier: Modifier = Modifier,
     colorOverrides: Map<ID, Color> = mapOf(),
-    onSelection: (ID) -> Unit = {},
+    onSelection: (ID) -> Unit = {}
 ) {
     var targetSweep by remember { mutableStateOf(0f) }
     val currentSweepRange by animateFloatAsState(
@@ -55,9 +55,9 @@ fun <ID> Chart(
     if (dataPoints.isEmpty()) {
         Canvas(modifier = modifier) {
             drawSlice(
-                color = Color.White.with(value = {0.95f}),
+                color = Color.White.with(value = { 0.95f }),
                 startAngle = -90f,
-                sweepAngle = currentSweepRange,
+                sweepAngle = currentSweepRange
             )
         }
         return
@@ -81,7 +81,7 @@ fun <ID> Chart(
                         }
                             .let { abs(it) - 1 }
                             .also(logError("Found"))
-                            .let(angleBounds::get andThen {it.second})
+                            .let(angleBounds::get andThen { it.second })
                             .run(onSelection)
                     }
                 )
@@ -95,7 +95,7 @@ fun <ID> Chart(
             drawSlice(
                 color = colorOverrides[it.id] ?: hsv(hue = hue, saturation = 0.5f, value = 0.75f),
                 startAngle = start,
-                sweepAngle = sweep,
+                sweepAngle = sweep
             )
             start = (start + sweep).coerceAtMost(360f)
             hue = (hue + hueSweep).coerceAtMost(359f)
@@ -108,13 +108,13 @@ private fun DrawScope.drawSlice(color: Color, startAngle: Float, sweepAngle: Flo
         color = color,
         startAngle = startAngle,
         sweepAngle = sweepAngle,
-        useCenter = true,
+        useCenter = true
     )
     drawArc(
-        color = color.with(value = {it/2}),
+        color = color.with(value = { it / 2 }),
         startAngle = startAngle,
         sweepAngle = sweepAngle,
         useCenter = true,
-        style = Stroke(width = 4f),
+        style = Stroke(width = 4f)
     )
 }
